@@ -75,13 +75,15 @@ def map_azure_exceptions(key=None, exc_pass=()):
 
 class AzureBlockBlobStore(KeyValueStore):
     def __init__(self, conn_string=None, container=None, public=False,
-                 create_if_missing=True, max_connections=2, checksum=False):
+                 create_if_missing=True, max_connections=2, checksum=False,
+                 request_session=None):
         self.conn_string = conn_string
         self.container = container
         self.public = public
         self.create_if_missing = create_if_missing
         self.max_connections = max_connections
         self.checksum = checksum
+        self.request_session = request_session
 
     # This allows recreating the block_blob_service instance when needed.
     # Together with the copyreg-registration at the bottom of this file,
@@ -90,7 +92,9 @@ class AzureBlockBlobStore(KeyValueStore):
     def block_blob_service(self):
         from azure.storage.blob import BlockBlobService, PublicAccess
         block_blob_service = BlockBlobService(
-            connection_string=self.conn_string)
+            connection_string=self.conn_string,
+            request_session=self.request_session,
+        )
         if self.create_if_missing:
             block_blob_service.create_container(
                 self.container,
